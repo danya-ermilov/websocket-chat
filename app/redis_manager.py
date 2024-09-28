@@ -27,17 +27,14 @@ class RedisManager:
         await self.increment_daily_coins(ip, coins)
 
     async def check_coin_limit(self, ip, coins):
-        """Проверяет, не превысил ли пользователь лимит в 1000 монет за день"""
         daily_key = f"coins:{ip}:{datetime.now().strftime('%Y-%m-%d')}"
         spent_coins = await self.redis.get(daily_key)
         spent_coins = int(spent_coins) if spent_coins else 0
         return spent_coins + coins <= 1000
 
     async def increment_daily_coins(self, ip, coins):
-        """Увеличивает количество монет, потраченных пользователем в день"""
         daily_key = f"coins:{ip}:{datetime.now().strftime('%Y-%m-%d')}"
         await self.redis.incrby(daily_key, coins)
-        # Устанавливаем TTL на 24 часа, чтобы лимит сбрасывался каждый день
         await self.redis.expireat(daily_key, datetime.now() + timedelta(days=1))
 
     async def get_messages(self):

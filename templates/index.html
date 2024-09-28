@@ -17,7 +17,6 @@
   <body>
     <h1>Chat with Coins</h1>
 
-    <!-- Добавляем поле для имени -->
     <input type="text" id="usernameInput" placeholder="Your name" required />
 
     <div id="chat"></div>
@@ -67,7 +66,7 @@
         if (username && messageInput && coinsInput > 0) {
           ws.send(
             JSON.stringify({
-              username: username, // Отправляем имя
+              username: username,
               message: messageInput,
               coins: coinsInput,
             })
