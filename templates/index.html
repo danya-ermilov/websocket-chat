@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Chat with Coins</title>
+    <style>
+      .message {
+        margin-bottom: 10px;
+      }
+      .coins {
+        font-weight: bold;
+        color: green;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Chat with Coins</h1>
+
+    <input type="text" id="usernameInput" placeholder="Your name" required />
+
+    <div id="chat"></div>
+    <input type="text" id="messageInput" placeholder="Type your message..." />
+    <input
+      type="number"
+      id="coinsInput"
+      placeholder="Coins"
+      min="1"
+      value="1"
+    />
+    <button onclick="sendMessage()">Send Message</button>
+
+    <script>
+      const ws = new WebSocket("ws://localhost:8000/ws");
+      const chat = document.getElementById("chat");
+
+      ws.onmessage = function (event) {
+        const messages = JSON.parse(event.data);
+        renderMessages(messages);
+      };
+
+      function renderMessages(messages) {
+        chat.innerHTML = "";
+        messages.forEach((msg) => {
+          const div = document.createElement("div");
+          div.className = "message";
+          div.innerHTML = `<span>${msg.message}</span> - <span class="coins">${msg.coins} coins</span>`;
+          chat.appendChild(div);
+        });
+      }
+
+      function sendMessage() {
+        const username = document.getElementById("usernameInput").value;
+        const messageInput = document.getElementById("messageInput").value;
+        const coinsInput = parseInt(
+          document.getElementById("coinsInput").value
+        );
+        if (messageInput && coinsInput > 0) {
+          ws.send(
+            JSON.stringify({
+              username: username,
+              message: messageInput,
+              coins: coinsInput,
+            })
+          );
+        }
+      }
+    </script>
+  </body>
+</html>
