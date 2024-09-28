@@ -3,7 +3,7 @@ import json
 from app.config import REDIS_URL
 
 class RedisManager:
-    def __init__(self) -> None:
+    def __init__(self):
         self.redis = None
 
     async def connect(self):
