@@ -17,16 +17,24 @@
   <body>
     <h1>Chat with Coins</h1>
 
+    <!-- Добавляем поле для имени -->
     <input type="text" id="usernameInput" placeholder="Your name" required />
 
     <div id="chat"></div>
-    <input type="text" id="messageInput" placeholder="Type your message..." />
+
+    <input
+      type="text"
+      id="messageInput"
+      placeholder="Type your message..."
+      required
+    />
     <input
       type="number"
       id="coinsInput"
       placeholder="Coins"
       min="1"
       value="1"
+      required
     />
     <button onclick="sendMessage()">Send Message</button>
 
@@ -44,7 +52,7 @@
         messages.forEach((msg) => {
           const div = document.createElement("div");
           div.className = "message";
-          div.innerHTML = `<span>${msg.message}</span> - <span class="coins">${msg.coins} coins</span>`;
+          div.innerHTML = `<span><b>${msg.username}:</b> ${msg.message}</span> - <span class="coins">${msg.coins} coins</span>`;
           chat.appendChild(div);
         });
       }
@@ -55,10 +63,11 @@
         const coinsInput = parseInt(
           document.getElementById("coinsInput").value
         );
-        if (messageInput && coinsInput > 0) {
+
+        if (username && messageInput && coinsInput > 0) {
           ws.send(
             JSON.stringify({
-              username: username,
+              username: username, // Отправляем имя
               message: messageInput,
               coins: coinsInput,
             })

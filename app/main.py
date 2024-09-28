@@ -7,6 +7,7 @@ from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from starlette.requests import Request
+import json
 
 app = FastAPI()
 
@@ -32,11 +33,21 @@ async def websocket_endpoint(websocket: WebSocket):
 
     try:
         current_messages = await redis_manager.get_messages()
-        await websocket.send_text(current_messages)
 
         while True:
             data = await websocket.receive_text()
-            await redis_manager.add_message(client_ip, data)
+            data = json.loads(data)
+            username = data.get("username")
+            message = data.get("message")
+            coins = data.get("coins", 0)
+
+            try:
+                await redis_manager.add_message(client_ip, username, json.dumps({
+                    "message": message,
+                    "coins": coins
+                }))
+            except Exception as e:
+                await websocket.send_text(json.dumps({"error": str(e)}))
 
             messages = await redis_manager.get_messages()
             await manager.broadcast(messages)
