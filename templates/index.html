@@ -17,26 +17,42 @@
   <body>
     <h1>Chat with Coins</h1>
 
+    <div>
+      <span>Remaining Coins: </span><span id="remainingCoins">Loading...</span>
+    </div>
+
     <input type="text" id="usernameInput" placeholder="Your name" required />
 
     <div id="chat"></div>
-    <input type="text" id="messageInput" placeholder="Type your message..." />
+
+    <input
+      type="text"
+      id="messageInput"
+      placeholder="Type your message..."
+      required
+    />
     <input
       type="number"
       id="coinsInput"
       placeholder="Coins"
       min="1"
       value="1"
+      required
     />
     <button onclick="sendMessage()">Send Message</button>
 
     <script>
       const ws = new WebSocket("ws://localhost:8000/ws");
       const chat = document.getElementById("chat");
+      const remainingCoinsElement = document.getElementById("remainingCoins");
 
       ws.onmessage = function (event) {
-        const messages = JSON.parse(event.data);
-        renderMessages(messages);
+        const data = JSON.parse(event.data);
+        if (data.remaining_coins !== undefined) {
+          remainingCoinsElement.textContent = data.remaining_coins;
+        } else {
+          renderMessages(data);
+        }
       };
 
       function renderMessages(messages) {
@@ -44,7 +60,7 @@
         messages.forEach((msg) => {
           const div = document.createElement("div");
           div.className = "message";
-          div.innerHTML = `<span>${msg.message}</span> - <span class="coins">${msg.coins} coins</span>`;
+          div.innerHTML = `<span><b>${msg.username}:</b> ${msg.message}</span> - <span class="coins">${msg.coins} coins</span>`;
           chat.appendChild(div);
         });
       }
@@ -55,7 +71,8 @@
         const coinsInput = parseInt(
           document.getElementById("coinsInput").value
         );
-        if (messageInput && coinsInput > 0) {
+
+        if (username && messageInput && coinsInput > 0) {
           ws.send(
             JSON.stringify({
               username: username,

@@ -7,6 +7,7 @@ from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from starlette.requests import Request
+import json
 
 app = FastAPI()
 
@@ -25,21 +26,45 @@ manager = ConnectionManager()
 async def startup_event():
     asyncio.create_task(start_decrement_task(redis_manager, manager))
 
+@app.get("/coins")
+async def get_remaining_coins(request: Request):
+    client_ip = request.client.host  
+    remaining_coins = await redis_manager.get_remaining_coins(client_ip)  
+    return {"remaining_coins": remaining_coins}
+
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
     await manager.connect(websocket)
     client_ip = websocket.client.host
 
+    remaining_coins = await redis_manager.get_remaining_coins(client_ip)
+
+    await websocket.send_text(json.dumps({"remaining_coins": remaining_coins}))
+
     try:
         current_messages = await redis_manager.get_messages()
-        await websocket.send_text(current_messages)
 
         while True:
             data = await websocket.receive_text()
-            await redis_manager.add_message(client_ip, data)
+            data = json.loads(data)
+            username = data.get("username")
+            message = data.get("message")
+            coins = data.get("coins", 0)
+
+            try:
+                await redis_manager.add_message(client_ip, username, json.dumps({
+                    "message": message,
+                    "coins": coins
+                }))
+            except Exception as e:
+                await websocket.send_text(json.dumps({"error": str(e)}))
 
             messages = await redis_manager.get_messages()
             await manager.broadcast(messages)
+
+            remaining_coins = await redis_manager.get_remaining_coins(client_ip)
+
+            await websocket.send_text(json.dumps({"remaining_coins": remaining_coins}))
     
     except WebSocketDisconnect:
         manager.disconnect(websocket)
