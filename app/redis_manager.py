@@ -1,6 +1,6 @@
 import aioredis
 import json
-from app.config import REDIS_URL
+from app.config import REDIS_URL, LIMIT
 from datetime import datetime, timedelta
 
 
@@ -11,6 +11,13 @@ class RedisManager:
     async def connect(self):
         if self.redis is None:
             self.redis = await aioredis.from_url(REDIS_URL)
+
+    async def get_remaining_coins(self, ip):
+        daily_key = f"coins:{ip}:{datetime.now().strftime('%Y-%m-%d')}"
+        spent_coins = await self.redis.get(daily_key)
+        spent_coins = int(spent_coins) if spent_coins else 0
+        remaining_coins = LIMIT - spent_coins  
+        return remaining_coins
             
     async def add_message(self, ip, username, message_data):
         data = json.loads(message_data)
@@ -30,7 +37,7 @@ class RedisManager:
         daily_key = f"coins:{ip}:{datetime.now().strftime('%Y-%m-%d')}"
         spent_coins = await self.redis.get(daily_key)
         spent_coins = int(spent_coins) if spent_coins else 0
-        return spent_coins + coins <= 1000
+        return spent_coins + coins <= LIMIT
 
     async def increment_daily_coins(self, ip, coins):
         daily_key = f"coins:{ip}:{datetime.now().strftime('%Y-%m-%d')}"

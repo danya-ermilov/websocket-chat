@@ -26,10 +26,20 @@ manager = ConnectionManager()
 async def startup_event():
     asyncio.create_task(start_decrement_task(redis_manager, manager))
 
+@app.get("/coins")
+async def get_remaining_coins(request: Request):
+    client_ip = request.client.host  
+    remaining_coins = await redis_manager.get_remaining_coins(client_ip)  
+    return {"remaining_coins": remaining_coins}
+
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
     await manager.connect(websocket)
     client_ip = websocket.client.host
+
+    remaining_coins = await redis_manager.get_remaining_coins(client_ip)
+
+    await websocket.send_text(json.dumps({"remaining_coins": remaining_coins}))
 
     try:
         current_messages = await redis_manager.get_messages()
@@ -51,6 +61,10 @@ async def websocket_endpoint(websocket: WebSocket):
 
             messages = await redis_manager.get_messages()
             await manager.broadcast(messages)
+
+            remaining_coins = await redis_manager.get_remaining_coins(client_ip)
+
+            await websocket.send_text(json.dumps({"remaining_coins": remaining_coins}))
     
     except WebSocketDisconnect:
         manager.disconnect(websocket)

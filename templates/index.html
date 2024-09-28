@@ -17,6 +17,10 @@
   <body>
     <h1>Chat with Coins</h1>
 
+    <div>
+      <span>Remaining Coins: </span><span id="remainingCoins">Loading...</span>
+    </div>
+
     <input type="text" id="usernameInput" placeholder="Your name" required />
 
     <div id="chat"></div>
@@ -40,10 +44,15 @@
     <script>
       const ws = new WebSocket("ws://localhost:8000/ws");
       const chat = document.getElementById("chat");
+      const remainingCoinsElement = document.getElementById("remainingCoins");
 
       ws.onmessage = function (event) {
-        const messages = JSON.parse(event.data);
-        renderMessages(messages);
+        const data = JSON.parse(event.data);
+        if (data.remaining_coins !== undefined) {
+          remainingCoinsElement.textContent = data.remaining_coins;
+        } else {
+          renderMessages(data);
+        }
       };
 
       function renderMessages(messages) {
