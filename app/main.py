@@ -66,7 +66,6 @@ async def websocket_endpoint(websocket: WebSocket):
             await websocket.send_text(json.dumps({"random_message": random_message}))
 
             remaining_coins = await redis_manager.get_remaining_coins(client_ip)
-
             await websocket.send_text(json.dumps({"remaining_coins": remaining_coins}))
     
     except WebSocketDisconnect:
