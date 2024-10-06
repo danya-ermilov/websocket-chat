@@ -53,7 +53,10 @@
 
       ws.onmessage = function (event) {
         const data = JSON.parse(event.data);
-        if (data.remaining_coins !== undefined) {
+        if (
+          data.remaining_coins !== undefined &&
+          data.random_message !== undefined
+        ) {
           remainingCoinsElement.textContent = data.remaining_coins;
           randomMessageElement.textContent = data.random_message;
         } else {
