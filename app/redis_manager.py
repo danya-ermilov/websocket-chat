@@ -63,9 +63,12 @@ class RedisManager:
                 await self.redis.zrem('chat_messages', message_data)
 
     async def get_random_message(self):
-        elements = await self.redis.zrange("chat_messages", 0, 100, withscores=True)
-        items = [elem[0] for elem in elements]
-        weights = [elem[1] for elem in elements]
+        try:
+            elements = await self.redis.zrange("chat_messages", 0, 100, withscores=True)
+            items = [elem[0] for elem in elements]
+            weights = [elem[1] for elem in elements]
     
-        result = random.choices(items, weights=weights, k=1)
-        return result[0]
+            result = random.choices(items, weights=weights, k=1)
+            return result[0]
+        except:
+            return 'NO RESULT'
