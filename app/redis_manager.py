@@ -71,4 +71,4 @@ class RedisManager:
             result = random.choices(items, weights=weights, k=1)
             return result[0].decode('utf-8').split(':', 2)[2]
         except:
-            return 'NO RESULT'
+            return 'no advertisement yet. you may be first.'
