@@ -23,6 +23,10 @@
 
     <input type="text" id="usernameInput" placeholder="Your name" required />
 
+    <div>
+      <span>Random Message: </span><span id="randomMessage">Loading...</span>
+    </div>
+
     <div id="chat"></div>
 
     <input
@@ -45,13 +49,22 @@
       const ws = new WebSocket("ws://localhost:8000/ws");
       const chat = document.getElementById("chat");
       const remainingCoinsElement = document.getElementById("remainingCoins");
+      const randomMessageElement = document.getElementById("randomMessage");
 
       ws.onmessage = function (event) {
         const data = JSON.parse(event.data);
+        //console.log(data);
+
         if (data.remaining_coins !== undefined) {
           remainingCoinsElement.textContent = data.remaining_coins;
-        } else {
+        }
+        if (data.random_message !== undefined) {
+          randomMessageElement.textContent = data.random_message;
+        }
+        if (Array.isArray(data) && data.length > 0) {
           renderMessages(data);
+        } else {
+          console.log("Received data is not a valid array or it's empty.");
         }
       };
 

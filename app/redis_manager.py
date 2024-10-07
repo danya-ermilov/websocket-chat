@@ -2,7 +2,7 @@ import aioredis
 import json
 from app.config import REDIS_URL, LIMIT
 from datetime import datetime, timedelta
-
+import random
 
 class RedisManager:
     def __init__(self):
@@ -61,3 +61,14 @@ class RedisManager:
                 await self.redis.zadd('chat_messages', {message_data:coins-1})
             else:
                 await self.redis.zrem('chat_messages', message_data)
+
+    async def get_random_message(self):
+        try:
+            elements = await self.redis.zrange("chat_messages", 0, 100, withscores=True)
+            items = [elem[0] for elem in elements]
+            weights = [elem[1] for elem in elements]
+    
+            result = random.choices(items, weights=weights, k=1)
+            return result[0].decode('utf-8').split(':', 2)[2]
+        except:
+            return 'NO RESULT'
