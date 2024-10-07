@@ -41,11 +41,13 @@ async def websocket_endpoint(websocket: WebSocket):
     await websocket.send_text(json.dumps({"remaining_coins": remaining_coins}))
 
     random_message = await redis_manager.get_random_message()
-    random_message = random_message.decode('utf-8')
     await websocket.send_text(json.dumps({"random_message": random_message}))
 
+    messages = await redis_manager.get_messages()
+    await manager.broadcast(messages)
+
     try:
-        current_messages = await redis_manager.get_messages()
+        await redis_manager.get_messages()
 
         while True:
             data = await websocket.receive_text()
@@ -66,7 +68,6 @@ async def websocket_endpoint(websocket: WebSocket):
             await manager.broadcast(messages)
 
             random_message = await redis_manager.get_random_message()
-            random_message = random_message.decode('utf-8')
             await websocket.send_text(json.dumps({"random_message": random_message}))
 
             remaining_coins = await redis_manager.get_remaining_coins(client_ip)

@@ -69,6 +69,6 @@ class RedisManager:
             weights = [elem[1] for elem in elements]
     
             result = random.choices(items, weights=weights, k=1)
-            return result[0]
+            return result[0].decode('utf-8').split(':', 2)[2]
         except:
             return 'NO RESULT'
